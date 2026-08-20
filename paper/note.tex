@@ -1,0 +1,491 @@
+\documentclass[review,11pt]{elsarticle}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{lineno}
+\usepackage[hidelinks]{hyperref}
+\modulolinenumbers[5]
+\journal{Operations Research Letters}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\OPT}{\mathrm{OPT}}
+
+\begin{document}
+\begin{frontmatter}
+\title{Fixed charges of arbitrary sign: what survives and what fails}
+\author{Duy T. Nguyen\corref{cor1}}
+\ead{duynguyen.das@gmail.com}
+\cortext[cor1]{Corresponding author. ORCID: \href{https://orcid.org/0009-0004-0732-2093}{0009-0004-0732-2093}}
+\address{Independent Researcher, Ho Chi Minh City, Vietnam}
+
+\begin{abstract}
+Fixed-charge models assume the charge is paid, not received. Wholesale electricity
+clears at negative prices, and a negative price turns an activation charge into a
+payment received. We ask what survives. The vertex argument does: for a fixed-charge
+integer program whose continuous constraint matrix is totally unimodular, an optimal
+solution is an integral vertex of the cell obtained by conditioning on its support,
+whatever the signs. That argument is elementary; what is not is where it becomes necessary.
+A fixed charge is piecewise concave in Zangwill's sense exactly when it is paid, so the
+classical machinery stops precisely at the sign change. The structural
+properties it is usually invoked to deliver do \emph{not} survive. The vertex bound
+constrains only coordinates lying strictly between $1$ and their upper bound, and we
+exhibit instances with negative charges whose unique optimum runs every activity it
+uses at the minimum level $1$: the fractional-period property of Florian--Klein and Love,
+the spanning-forest bound for fixed-charge transportation and the spanning-tree bound for
+fixed-charge flow each fail. Algorithms resting on the classical properties therefore
+cannot simply be carried over. The $O(T^4)$ recursion of Akbalik, Penz and Rapine is
+correct under the concavity it assumes; applied outside it, we give a four-period
+instance on which its state space cannot represent the optimum and it loses $16.7\%$. Total unimodularity cannot be dropped. The same analysis exposes
+a modelling error in the natural mixed-integer formulation.
+\end{abstract}
+
+\begin{keyword}
+fixed-charge problems \sep negative prices \sep total unimodularity \sep lot sizing
+\sep integral polyhedra
+\end{keyword}
+\end{frontmatter}
+\linenumbers
+
+\section{Introduction}
+
+Write the cost of using activity $j$ at level $x\in[0,u_j]$ as
+\begin{equation}\label{eq:fc}
+\varphi_j(0)=0,\qquad \varphi_j(x)=s_j+c_jx\quad(x>0),
+\end{equation}
+with a fixed charge $s_j$ and a marginal rate $c_j$. In applications both are a price
+multiplied by a technical coefficient, $s_j=p_j\sigma_j$ and $c_j=p_j\gamma_j$ with
+$\sigma_j,\gamma_j>0$, so both inherit the sign of $p_j$. Wholesale electricity clears
+below zero, and increasingly so as variable renewable capacity grows \cite{seel21}.
+There a fixed charge is received rather than paid.
+
+The sign of $s_j$ decides the curvature. For $x>0$ and $0<\lambda<1$,
+\begin{equation}\label{eq:chord}
+\varphi_j(\lambda x)-\lambda\varphi_j(x)=s_j(1-\lambda),
+\end{equation}
+so $\varphi_j$ is concave on $[0,u_j]$ exactly when $s_j\ge0$. When $s_j<0$ it lies
+strictly below its own chord, which makes it \emph{convex}; what \eqref{eq:fc} loses at
+the origin is not convexity but \emph{lower semicontinuity}, since
+$\liminf_{x\downarrow0}\varphi_j(x)=s_j<0=\varphi_j(0)$.
+
+That distinction matters, because concavity and lower semicontinuity are exactly the
+hypotheses the structure theory runs on. Florian and Klein \cite{fk71} assume concavity;
+Love \cite{love73} and Swoveland \cite{swoveland75} assume piecewise concavity. Koca,
+Yaman and Akt\"urk \cite{kya14} assume piecewise concavity together with lower
+semicontinuity. Akbalik, Penz and Rapine \cite{apr15} invoke Love's property explicitly
+under concave costs. The same model has a polyhedral literature \cite{ak05}, which does
+not use the structural property at all; and the concave case with arbitrary capacities is
+NP-hard \cite{flr80}, so the polynomial results are all for restricted capacities. Ou \cite{ou17} imposes no sign restriction in his model statement,
+but the structural property he uses is attributed to Swoveland and is proved there for
+piecewise concave costs, so the hypothesis is inherited by the proof.
+
+Two qualifications are due at once. First, \cite{kya14} already anticipate a repair:
+their \S3.4 models minimum order quantities by setting $p_t(x)=\infty$ on
+$(0,L)\cup(C,\infty)$, and solves that case in $O(n^6)$. With $L=1$ the effective domain
+becomes $\{0\}\cup[1,C]$, which restores lower semicontinuity and leaves a piecewise
+concave cost whose breakpoints $\{0,1,C\}$ are time-invariant and fixed in number ---
+precisely the condition their polynomial algorithm requires. Negative charges are
+therefore not outside their framework; they are outside the framework as it is usually
+instantiated. The polynomial solvability of the $L=1$ case in \cite{kya14} is not at issue
+here. What fails, and what Sections~\ref{sec:fails}--\ref{sec:alg} are about, is the
+transfer of the classical structural properties, and of the algorithms built on them, to
+charges of either sign.
+Second, \cite{love73} is closer than it first appears. His model already carries
+production bounds $x^L_i\le x_i\le x^U_i$, and his conclusion excepts production equal to
+``zero or its upper or lower bound''; with $x^L_i=1$ that exception set is $\{0,1,x^U_i\}$,
+which is exactly the conclusion of Corollary~\ref{cor:count} below. What the corollary adds
+is that this holds \emph{without} concavity --- Love assumes his cost concave on
+$[0,\infty)$, which \eqref{eq:fc} is not when $s_j<0$. The classical property in the usual
+$x^L_i=0$ setting is a different statement, and Section~\ref{sec:fails} shows it fails.
+
+In itself, the proof of Theorem~\ref{thm:main} is three lines --- conditioning on the support
+leaves an \emph{affine} function on a bounded polyhedron whose vertices are integral by
+Hoffman--Kruskal --- and we claim no depth for it. But the standard route to a result of
+this shape is genuinely closed, and Proposition~\ref{prop:zangwill} shows why.
+Zangwill \cite{zangwill67} is the canonical reference here, and it is how \cite{love73}
+reaches the lot-sizing result. His theory is not confined to continuous costs: his
+Theorem~6 minimises any \emph{piecewise concave} function over its dominant set, and such
+functions may jump. Proposition~\ref{prop:zangwill} shows that \eqref{eq:fc} lies in that
+class precisely when $s_j\ge0$, so the sign of the charge is the exact boundary of the
+theory rather than an obstruction we happen to meet.
+
+\paragraph{Contribution.} What is new here is negative and, we think, more useful.
+Theorem~\ref{thm:main} and Corollary~\ref{cor:count} survive arbitrary signs.
+Section~\ref{sec:fails} shows that the three classical structural properties they are
+invoked to deliver do not, with a witness in each setting whose \emph{unique} optimum
+violates the classical statement. Section~\ref{sec:alg} carries the failure into an
+algorithm: the $O(T^4)$ recursion of \cite{apr15}, correct under the concavity it
+assumes, cannot be transferred beyond it, and loses $16.7\%$ on a four-period instance. Proposition~\ref{prop:sharp} shows total unimodularity cannot be dropped.
+Remark~\ref{rem:model} records a modelling error the same fact makes visible.
+
+\section{The problem class}
+
+Let $A$ be a totally unimodular matrix, $b$ an integral right-hand side,
+$u\in\Z_{>0}^n$, and consider
+\begin{equation}\label{eq:P}
+(\mathrm{FC})\qquad
+\min\ \Phi(x)=\sum_{j=1}^{n}\varphi_j(x_j)
+\quad\text{over}\quad x\in\Z^n,\quad Ax\lesseqgtr b,\quad 0\le x\le u,
+\end{equation}
+with $\varphi_j$ as in \eqref{eq:fc} and $s_j,c_j\in\R$ \emph{of arbitrary sign}.
+Write $\supp(x)=\{j:x_j>0\}$, and for $S\subseteq\{1,\dots,n\}$ define the \emph{cell}
+\begin{equation}\label{eq:cell}
+P(S)=\bigl\{x\in\R^n:\ Ax\lesseqgtr b,\quad x_j=0\ (j\notin S),\quad 1\le x_j\le u_j\ (j\in S)\bigr\}.
+\end{equation}
+The constant $1$ in \eqref{eq:cell} is where integrality enters, and it is the source of
+everything in Section~\ref{sec:fails}: for continuous variables the set
+$\{x_j>0,\ j\in S\}$ is not closed and carries no vertex guarantee.
+
+\section{The vertex theorem}
+
+\begin{lemma}\label{lem:cell}
+Let $x^{*}$ be feasible for \eqref{eq:P} and $S=\supp(x^{*})$. Then $x^{*}\in P(S)$;
+every integral point of $P(S)$ is feasible for \eqref{eq:P} with support exactly $S$;
+$\Phi$ agrees on $P(S)$ with the affine function $\sum_{j\in S}s_j+\sum_{j\in S}c_jx_j$;
+and $P(S)$ is a non-empty bounded polyhedron all of whose vertices are integral.
+\end{lemma}
+
+\begin{proof}
+$x^{*}$ is integral with $x^{*}_j\ge1$ on $S$, so $x^{*}\in P(S)$. Conversely any
+$x\in P(S)$, integral or not, has $x_j\ge1>0$ exactly on $S$, hence
+$\Phi(x)=\sum_{j\in S}(s_j+c_jx_j)$; the first sum is constant on $P(S)$, so this is
+affine there. Boundedness is immediate from $0\le x\le u$. The constraint matrix of
+$P(S)$ is $A$ with rows of the identity adjoined, which preserves total unimodularity,
+and every right-hand side --- entries of $b$, $u$, $0$ and $1$ --- is integral; by
+Hoffman--Kruskal the polyhedron is integral.
+\end{proof}
+
+The affineness is the whole of the argument. The only part of $\Phi$ that is neither
+convex nor concave \emph{as a whole} is the switch at the origin, and conditioning on
+the support switches it off: once we know which activities are used, the fixed charges
+are a constant and nothing non-linear remains. No curvature is needed, so no sign
+restriction is needed either.
+
+\begin{theorem}\label{thm:main}
+Problem \eqref{eq:P} has an optimal solution $\hat x$ that is an integral vertex of
+$P(\supp(\hat x))$, for fixed charges and marginal rates of arbitrary sign.
+\end{theorem}
+
+\begin{proof}
+Let $x^{*}$ be optimal and $S=\supp(x^{*})$. By Lemma~\ref{lem:cell}, $P(S)$ is a
+non-empty bounded polyhedron on which $\Phi$ is affine, so $\Phi$ attains its minimum
+over $P(S)$ at a vertex $\hat x$, and $\Phi(\hat x)\le\Phi(x^{*})$. Again by
+Lemma~\ref{lem:cell}, $\hat x$ is integral and feasible with support exactly $S$, so
+$\Phi(\hat x)\ge\OPT=\Phi(x^{*})$. Hence $\hat x$ is optimal and is a vertex of
+$P(S)=P(\supp(\hat x))$.
+\end{proof}
+
+\begin{corollary}\label{cor:count}
+Let $\hat x$ be as in Theorem~\ref{thm:main}, let $A_{\mathrm{t}}$ be the rows of $A$
+tight at $\hat x$, and let $Q=\{j:1<\hat x_j<u_j\}$. Then the columns of
+$A_{\mathrm{t}}$ indexed by $Q$ are linearly independent; in particular
+$|Q|\le\operatorname{rank}A_{\mathrm{t}}$.
+\end{corollary}
+
+\begin{proof}
+Suppose $d\ne0$ is supported on $Q$ with $A_{\mathrm{t}}d=0$. For small $\varepsilon>0$
+the points $\hat x\pm\varepsilon d$ satisfy the tight rows with equality and the slack
+ones by continuity; the bounds hold because every coordinate of $Q$ is strictly
+interior; and coordinates outside $S$ are untouched, since $Q\subseteq S$. So $\hat x$
+is the midpoint of a segment in $P(S)$, contradicting that it is a vertex.
+\end{proof}
+
+\begin{proposition}\label{prop:zangwill}
+Let $X=[0,u_j]$ and let $\varphi_j$ be as in \eqref{eq:fc}. Then $\varphi_j$ is piecewise
+concave in the sense of \cite{zangwill67} \emph{if and only if} $s_j\ge0$. His Theorem~6
+therefore applies to a fixed charge that is paid and to no fixed charge that is received.
+\end{proposition}
+
+\begin{proof}
+Zangwill calls $F$ \emph{continuous piecewise concave} (CPC) on $X$ when
+$F=\max_i g_i$ for finitely many continuous concave $g_i$, with \emph{basic sets}
+$B_i=\{z\in X: F(z)=g_i(z)\}$ and \emph{terminal set} $T=\bigcup_{a\ne b}(B_a\cap B_b)$; and
+$F$ is \emph{piecewise concave} (PC) when it is the pointwise limit of CPC functions
+$\{F_k\}$ that share one terminal set $T$ and satisfy $F_k=F_1$ on $E[X]\cup T$.
+
+Suppose $\{F_k\}$ is such a sequence for $\varphi_j$. Each $F_k$ is a maximum of finitely
+many continuous functions, hence continuous; and $F_k=F_1$ on $E[X]\cup T$ together with
+$F_k\to\varphi_j$ pointwise gives $F_1=\varphi_j$ there.
+
+Since $0\in E[X]$ we get $F_1(0)=\varphi_j(0)=0$. As $F_1$ is continuous and
+$s_j+c_jx\to s_j\ne0$ as $x\downarrow0$, choose $\delta\in(0,u_j)$ with $|F_1|<|s_j|/2$ and
+$|s_j+c_jx|>|s_j|/2$ on $[0,\delta]$. Any $x\in T\cap(0,\delta)$ would satisfy
+$F_1(x)=\varphi_j(x)=s_j+c_jx$, violating both bounds; hence $T\cap(0,\delta)=\emptyset$.
+
+Fix $k$. The basic sets of $F_k$ are closed and cover $X$, and no two of them meet in
+$(0,\delta)$, which is connected; so exactly one basic set meets $(0,\delta)$ and $F_k$
+agrees there with a single continuous concave $g^k$. By continuity,
+$g^k(0)=F_k(0)=F_1(0)=0$. Concavity with $g^k(0)=0$ gives, for $x\in(0,\delta)$ and
+$\lambda\in(0,1)$,
+\[
+g^k(\lambda x)\ \ge\ \lambda g^k(x)+(1-\lambda)g^k(0)\ =\ \lambda g^k(x).
+\]
+Letting $k\to\infty$ and using $g^k\to\varphi_j$ pointwise on $(0,\delta)$,
+\[
+s_j+c_j\lambda x\ \ge\ \lambda(s_j+c_jx),\qquad\text{that is}\qquad s_j(1-\lambda)\ \ge\ 0 ,
+\]
+so $s_j\ge0$, contradicting $s_j<0$.
+
+Conversely let $s_j\ge0$, put $K_0=s_j/u_j+|c_j|+1$ and
+\[
+F_k(x)\ =\ \min\bigl\{(k+K_0)x,\ s_j+c_jx\bigr\},\qquad k\ge1 .
+\]
+Each $F_k$ is a minimum of two affine functions, hence continuous and concave, hence CPC as
+a family with the single member $F_k$ itself. That family has no second member, so no two
+basic sets meet and the terminal set is $\emptyset$ for every $k$; condition~(2) then only
+asks for agreement on $E[X]=\{0,u_j\}$. There $F_k(0)=\min\{0,s_j\}=0=\varphi_j(0)$, using
+$s_j\ge0$, and $(k+K_0)u_j>s_j+c_ju_j$ for every $k\ge1$ by the choice of $K_0$, so
+$F_k(u_j)=s_j+c_ju_j$ independently of $k$. Finally, for fixed $x\in(0,u_j]$ we have
+$(k+K_0)x>s_j+c_jx$ once $k$ is large, so $F_k(x)\to s_j+c_jx$, while $F_k(0)=0$; thus
+$F_k\to\varphi_j$ pointwise and $\{F_k\}$ is a defining sequence.
+\end{proof}
+
+The sign of the fixed charge is therefore not merely a technical obstacle but the exact boundary
+of the class Zangwill's theory covers. That is why the classical route is available for the
+received wisdom and closed here, and it is the precise sense in which a charge that is
+received is a different object rather than the same object with a hypothesis relaxed.
+
+\section{What does not survive}\label{sec:fails}
+
+Corollary~\ref{cor:count} constrains only the coordinates with $1<\hat x_j<u_j$. The
+classical structural properties constrain those with $0<\hat x_j<u_j$. Under
+non-negative charges the difference is immaterial in practice, because a positive fixed
+charge penalises opening an activity and optima consolidate. Under negative charges it
+is the whole story: a negative fixed charge \emph{rewards} opening, so optima open
+everything they can and drive volumes to the minimum. Each witness below has a
+\emph{unique} optimum, so no choice of optimal solution repairs the classical statement,
+and each respects the coupling $s_j=p_j\sigma_j$, $c_j=p_j\gamma_j$ with
+$\sigma_j,\gamma_j>0$ of Section~1 --- the failures are not an artefact of letting the
+fixed charge and the marginal rate carry opposite signs.
+
+\paragraph{Lot sizing.} Let $x_t$ be production in period $t$, $u_t=C$, and let the rows
+of $A$ be the prefix sums bounded below by cumulative demand and above by cumulative
+demand plus a storage bound; $A$ is an interval matrix, hence totally unimodular. Take
+$T=3$, $C=3$, zero demand, storage bound $2$, and prices $p=(-1,-1,1)$ with
+$\sigma_t=\gamma_t=1$, so $s_t=c_t=p_t$. The unique optimum is $x=(1,1,0)$, with prefix
+sums $(1,2,2)$ and value $-4$. Rows $2$ and $3$ are tight and row $1$ is not, so no
+inventory point separates periods $1$ and $2$, both of which produce strictly between $0$
+and $C$: the fractional-period property of \cite{fk71,love73} fails on the unique
+optimum. Here $Q=\emptyset$, so Corollary~\ref{cor:count} holds vacuously.
+
+\paragraph{Fixed-charge transportation.} Let $A$ be the $2\times2$ bipartite incidence
+matrix with supplies and demands $(2,2)$, $u_{ij}=2$ and $s_{ij}=c_{ij}=-1$. The unique
+optimum, of value $-8$, sends one unit on each of the four arcs. No arc is strictly interior, so
+again Corollary~\ref{cor:count} is vacuous, while the four positive arcs exceed the
+classical bound $m+n-1=3$ and form a cycle.
+
+\paragraph{Fixed-charge min-cost flow.} The same instance read as a flow problem on four
+nodes with $b=(2,2,-2,-2)$ gives four positive arcs against the spanning-tree bound
+$n-1=3$.
+
+So the sign hypothesis cannot be removed from the classical statements; it can only be
+removed from the vertex statement, which is weaker. Section~\ref{sec:alg} shows the
+difference is not academic.
+
+\section{An algorithm that breaks}\label{sec:alg}
+
+Corollary~\ref{cor:count} is sometimes read as a licence: an algorithm whose correctness
+uses non-negativity only through a vertex argument should keep working when the charges
+go negative. The licence is void whenever the algorithm uses the \emph{classical}
+property rather than the vertex property, and that is the common case.
+
+The recursion of \cite{apr15} is $O(T^4)$, is correct under the concave costs it assumes,
+and builds its state space directly on Love's property --- which it states, after
+\cite{love73}, in terms of periods that are \emph{fractional} in the classical sense
+$0<x_t<P$: within a subplan it assumes exactly $K=D_{u,v-1}/P$ periods produce at full
+capacity $P$ and one fractional period absorbs the remainder. Take $T=4$, $C=5$, storage
+bound $4$, demand $(0,0,0,4)$ and $s_t=c_t=-1$. Exhaustive enumeration gives optimal
+value $-12$, attained by a plan using level $1$ in several periods. The best plan the
+subplan decomposition can represent has value $-10$: an error of $16.7\%$. The state
+space cannot express the optimum, so no amount of care in the recursion recovers it.
+
+\begin{remark}
+A second instance in the same family, $T=5$, $C=4$, reports a relative error of
+$564.5\%$. We do not quote it as the headline: its optimal value is $-0.31$, so the
+ratio is inflated by a near-zero denominator, and its \emph{absolute} loss of $1.75$ is
+smaller than the $2.00$ above. Relative errors on objectives that change sign are not
+informative.
+\end{remark}
+
+\section{Total unimodularity cannot be dropped}\label{sec:sharp}
+
+\begin{proposition}\label{prop:sharp}
+There is an instance of \eqref{eq:P} without total unimodularity whose unique optimum is
+not a vertex of its cell, so the conclusion of Theorem~\ref{thm:main} fails.
+\end{proposition}
+
+\begin{proof}
+Take the odd-cycle system $x_1+x_2\le6$, $x_2+x_3\le7$, $x_1+x_3\le6$, whose constraint
+matrix has determinant $2$, with $u=(5,5,5)$, $s=(1.32,\,2.51,\,0.55)$ and
+$c=(-2.02,\,-2.06,\,-1.19)$. Exhaustive enumeration over the $113$ feasible integer
+points gives the unique optimum $\hat x=(2,4,3)$ of value $-11.47$, the runner-up being
+$(3,3,3)$ at $-11.43$. Its support is $\{1,2,3\}$, so its cell is
+$\{x:\ Ax\le b,\ 1\le x\le5\}$; the first two rows are tight there and no bound is, so
+the tight system has rank $2<3$ and $\hat x$ is not a vertex.
+\end{proof}
+
+This shows some hypothesis is needed, not that total unimodularity is the weakest one;
+whether balanced or perfect matrices suffice is open.
+
+\begin{remark}
+The weaker odd-cycle instance one first reaches for --- $x_i+x_j\le3$ with $1\le x\le3$
+and objective $-\sum_jx_j$ --- does \emph{not} serve. Its cell has continuous optimum
+$-4.5$ at $(\tfrac32,\tfrac32,\tfrac32)$ while the best integral point is $-4$ at
+$(1,1,2)$, so the affine-minimum step reaches a fractional vertex; but $(1,1,2)$ is
+itself a vertex of the cell, and the conclusion survives. That example breaks the
+argument, not the theorem.
+\end{remark}
+
+\begin{remark}[A modelling consequence]\label{rem:model}
+The natural mixed-integer formulation of \eqref{eq:fc} writes $x_j\le u_jy_j$ with $y_j$
+binary. For $s_j\ge0$ that suffices, because setting $y_j=1$ with $x_j=0$ only adds
+cost. For $s_j<0$ it does not: the solver sets $y_j=1$ and $x_j=0$ and banks the charge.
+Over integer $x$ the constraint $y_j\le x_j$ is required. On a four-period instance with
+prices $(1,-5,-5,-5)$, two units to be served by the horizon, $u=2$ and unit
+coefficients, the guarded formulation returns $-20$ and the unguarded one $-25$: the
+unguarded model reports a cost $25\%$ below the truth, and its solution ``uses'' idle
+activities purely to collect the charge. The object it optimises is the lower
+semicontinuous hull of $\varphi_j$, which is the function \cite{kya14} assume and
+\eqref{eq:fc} is not.
+
+The unguarded pattern is the standard one. \cite{apr15} write $0\le x_t\le Py_t$ with no
+lower link, and \cite{lcw01} write $x_t\le My_t$ having just \emph{defined}
+``$y_t=1$ if $x_t>0$, and $0$ otherwise'' --- a two-sided definition implemented by a
+one-sided constraint. Both are correct in their own settings, where the setup cost is
+non-negative and $y_t=1$ with $x_t=0$ is never optimal; we report no error in either.
+
+Two qualifications keep this in proportion. First, the repair is not new where the issue is
+already live: in energy models the minimum-load constraint plays exactly this role, as in
+$p_t\ge P^{\min}z^{\mathrm{on}}_t+P^{\mathrm{sb}}z^{\mathrm{sb}}_t$ of
+\cite{raheli23}, which forbids an activated unit from consuming nothing. What is missing
+from the lot-sizing formulations above is a constraint the energy literature writes as a
+matter of course. Second, the general shape --- an indicator pinned on one side only, correct
+because of the sign of its coefficient --- is widespread and not confined to
+\eqref{eq:fc}. The same paper \cite{raheli23}, whose numerical study is explicitly about
+nonpositive prices, defines its start-up binary by
+$z^{\mathrm{su}}_t\ge z^{\mathrm{off}}_{t-1}+z^{\mathrm{on}}_t+z^{\mathrm{sb}}_t-1$ with no
+upper pin, which is correct only because the start-up cost is a positive constant rather
+than a price. Our point is about \eqref{eq:fc}; the pattern is broader.
+\end{remark}
+
+\section{Computational verification}
+
+Every number below is produced by a named script released with this note, runnable with
+no arguments. Two of them corrected claims in earlier drafts of this work.
+
+\paragraph{The theorem.} Over $399$ lot-sizing instances with $T\in\{4,\dots,6\}$,
+$C\in\{4,\dots,8\}$ and charges drawn from $[-3,3]$, enumerating \emph{every} optimal
+plan: no violation of Corollary~\ref{cor:count}, the bound biting on $219$ of them
+(\texttt{redo\_sec7.py}). Over $1{,}085$ instances whose matrices were \emph{checked} to
+be totally unimodular, with mixed $\le/\ge/=$ rows and $u\in\{1,2,3\}$: no violation of
+Theorem~\ref{thm:main} (\texttt{check\_thm1\_tu.py}).
+
+\paragraph{How often the classical property fails.} Over $3{,}000$ random lot-sizing
+instances with prices of arbitrary sign and the coupling of Section~1 imposed
+($s_t=p_t\sigma$, $c_t=p_t\gamma$, $\sigma,\gamma>0$), the fractional-period property
+fails on \emph{every} optimum in $215$ of them, or $7.2\%$; releasing the coupling raises
+this only to $8.6\%$, so the coupling is not what protects the property
+(\texttt{sign\_coupling.py}). Separately, Corollary~\ref{cor:count} is vacuous
+($Q=\emptyset$ at every optimum) on $11.5\%$ of mixed-sign instances against $9.2\%$ of
+non-negative ones (\texttt{check\_vacuity.py}). The failures are a minority, but a
+substantial one, and an algorithm must be correct on all instances.
+
+\paragraph{Beyond the stated cost class.} The argument extends to per-period costs that
+are piecewise linear by conditioning on which piece each coordinate falls in as well as
+on the support. One point deserves care. If the coefficients of adjacent pieces are
+unrelated the cost \emph{jumps} at each breakpoint, so the pieces are half-open exactly
+as $(0,u_j]$ is, and integrality closes them: the piece containing a used coordinate is
+$[\beta_k+1,\beta_{k+1}]$, and $[1,\beta_1]$ for the first. Those are rows of the identity
+with integral right-hand side, so total unimodularity survives. Taking the pieces as
+$[\beta_k,\beta_{k+1}]$ instead does \emph{not} work, and produced violations until the
+bounds were corrected. With two interior breakpoints, $T\in\{4,5\}$, $C\in\{6,7,8\}$ and
+all four coefficient families drawn independently: $0/200$ violations with non-negative
+coefficients, $0/200$ with arbitrary signs, $0/200$ with arbitrary signs and no storage
+bound, the check biting on $158$, $172$ and $191$ of them respectively
+(\texttt{check\_piecewise.py}). Independently, $266$ piece-conditioned cells were solved
+as linear programs and none has a fractional optimum (\texttt{L1\_L2.py}).
+
+\paragraph{The steps of the proof.} That $\Phi$ is affine on $P(S)$ was verified on
+$1{,}269$ same-support pairs, worst error $3.6\times10^{-15}$; as a control, without which
+the argument would be vacuous, allowing the support to vary breaks affinity on $217$ of
+$220$ instances (\texttt{check\_affine.py}). The condition of Corollary~\ref{cor:count}
+was compared against the rank of the full active constraint system on all $6{,}088$
+feasible plans of $120$ lot-sizing instances, agreeing in every case
+(\texttt{check\_vertex\_rank.py}).
+
+\section{Concluding remarks}
+
+The vertex statement survives arbitrary signs by an elementary argument for which we claim
+no depth --- though Proposition~\ref{prop:zangwill} shows the classical route to it is
+closed, and that the sign of the charge is exactly where Zangwill's class ends. What we think matters is that the
+statements it is usually invoked to deliver do not survive, that this is visible in all
+three classical settings, and that a published polynomial recursion --- correct under
+its own hypotheses --- cannot be transferred beyond them, losing optimality on an
+instance of four periods. The practical reading is the reverse of the one a vertex
+argument invites: a negative fixed charge does not merely relax a hypothesis, it changes
+which plans are optimal, from few-and-large to many-and-minimal.
+
+Three directions remain. Whether the class extends beyond totally unimodular continuous
+parts is open. Proposition~\ref{prop:zangwill} characterises the summand $\varphi_j$,
+which is the object the classical hypotheses are stated about, and its necessity half lifts
+to $\Phi$ with $s_j$ replaced by the charge that \emph{switches on}. Let $z$ be a vertex of
+$X$ and $d$ a feasible direction there, and put
+\[
+J(z,d)\ =\ \textstyle\sum\{\,s_j:\ z_j=0,\ d_j>0\,\}.
+\]
+Then $\Phi(z+td)\to\Phi(z)+J(z,d)$ as $t\downarrow0$, and running the proof of
+Proposition~\ref{prop:zangwill} along the ray --- $z$ is pinned because $z\in E[X]$, the
+terminal set avoids a neighbourhood of it, and one concave piece is active on the rest ---
+gives $J(z,d)\bigl(1-\lambda\bigr)\ge0$. So $\Phi$ fails to be piecewise concave as soon as
+some $J(z,d)$ is negative, the one-dimensional statement being the case $z=0$, $d=e_j$,
+$J=s_j$. Both witnesses of Section~\ref{sec:fails} fail this way, the transportation one at
+the vertex $(0,2,2,0)$ along $(2,-2,-2,2)$, where $x_{11}$ and $x_{22}$ switch on together
+and $J=-2$. Whether $J(z,d)\ge0$ everywhere is also \emph{sufficient} we have not
+determined. And of the formulations we checked, the two lot-sizing ones \cite{apr15,lcw01} omit the
+guard of Remark~\ref{rem:model} --- harmless where they stand, not where they would be
+reused --- while the energy model \cite{raheli23} carries its continuous analogue as a
+minimum-load constraint. A search for a published formulation that both prices a fixed
+charge at a signed quantity and omits the guard returned nothing, so the exposure we
+describe is at present a property of how these models would be combined rather than one we
+can exhibit in print.
+
+\begin{thebibliography}{99}
+\bibitem{apr15} A. Akbalik, B. Penz, C. Rapine, Capacitated lot sizing problems with
+inventory bounds, \emph{Annals of Operations Research} 229 (1) (2015) 1--18.
+\bibitem{ak05} A. Atamt\"urk, S. K\"u\c{c}\"ukyavuz, Lot sizing with inventory bounds and
+fixed costs: polyhedral study and computation, \emph{Operations Research} 53 (4) (2005)
+711--730.
+\bibitem{fk71} M. Florian, M. Klein, Deterministic production planning with concave costs
+and capacity constraints, \emph{Management Science} 18 (1) (1971) 12--20.
+\bibitem{flr80} M. Florian, J. K. Lenstra, A. H. G. Rinnooy Kan, Deterministic production
+planning: algorithms and complexity, \emph{Management Science} 26 (7) (1980) 669--679.
+\bibitem{kya14} E. Koca, H. Yaman, M. S. Akt\"urk, Lot sizing with piecewise concave
+production costs, \emph{INFORMS Journal on Computing} 26 (4) (2014) 767--779.
+\bibitem{lcw01} C.-Y. Lee, S. \c{C}etinkaya, A. P. M. Wagelmans, A dynamic lot-sizing
+model with demand time windows, \emph{Management Science} 47 (10) (2001) 1384--1395.
+\bibitem{love73} S. F. Love, Bounded production and inventory models with piecewise
+concave costs, \emph{Management Science} 20 (3) (1973) 313--318.
+\bibitem{ou17} J. Ou, Improved exact algorithms to economic lot-sizing with piecewise
+linear production costs, \emph{European Journal of Operational Research} 256 (3) (2017)
+777--784.
+\bibitem{raheli23} E. Raheli, Y. Werner, J. Kazempour, A conic model for electrolyzer
+scheduling, \emph{Computers \& Chemical Engineering} 179 (2023) 108450.
+\bibitem{seel21} J. Seel, D. Millstein, A. Mills, M. Bolinger, R. Wiser, Plentiful
+electricity turns wholesale prices negative, \emph{Advances in Applied Energy} 4 (2021)
+100073.
+\bibitem{swoveland75} C. Swoveland, A deterministic multi-period production planning
+model with piecewise concave production and holding-backorder costs, \emph{Management
+Science} 21 (9) (1975) 1007--1013.
+\bibitem{zangwill67} W. I. Zangwill, The piecewise concave function, \emph{Management
+Science} 13 (11) (1967) 900--912.
+\end{thebibliography}
+\end{document}

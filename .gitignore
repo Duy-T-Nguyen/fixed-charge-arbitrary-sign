@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+
+# LaTeX build products; the .tex sources are the record
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+paper/*.spl
+paper/*.bbl
+paper/*.blg
