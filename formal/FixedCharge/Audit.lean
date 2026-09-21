@@ -1,0 +1,86 @@
+import FixedCharge.Core.Charge
+import FixedCharge.Core.FiniteOpt
+import FixedCharge.Core.TieBreak
+import FixedCharge.Model.Schedule
+import FixedCharge.Model.Feasibility
+import FixedCharge.Model.Cost
+import FixedCharge.Paper1.Witnesses
+import FixedCharge.Geometry.ExtremeOptimizer
+import FixedCharge.Geometry.DiscreteTransfer
+import FixedCharge.Paper1.Main
+import FixedCharge.Geometry.SupportCell
+import FixedCharge.Geometry.ExtremeDirection
+import FixedCharge.Geometry.FiniteSlack
+import FixedCharge.Geometry.ActiveColumns
+import FixedCharge.Geometry.UnimodularBasis
+import FixedCharge.Geometry.RowMinor
+import FixedCharge.Geometry.TUCompletion
+import FixedCharge.Geometry.TUCellIntegral
+import FixedCharge.Geometry.IntegralBounds
+import FixedCharge.Paper1.Theorem
+
+/-!
+Kernel-assumption report for the reusable M0 theorems.
+
+Run with `lake env lean FixedCharge/Audit.lean`.
+-/
+
+#print axioms FixedCharge.charge_eq_zero
+#print axioms FixedCharge.charge_eq_affine_of_ne_zero
+#print axioms FixedCharge.mem_support_iff
+#print axioms FixedCharge.support_objective_affine
+#print axioms FixedCharge.support_charge_affine
+#print axioms FixedCharge.charge_sum_over_support_affine
+#print axioms FixedCharge.argminSet_nonempty
+#print axioms FixedCharge.cost_eq_optimumValue_of_mem_argminSet
+#print axioms FixedCharge.mem_argminSet_of_cost_eq_optimumValue
+#print axioms FixedCharge.hasUniqueArgmin_iff_exists_unique
+#print axioms FixedCharge.smallestArgmin_mem
+#print axioms FixedCharge.largestArgmin_mem
+#print axioms FixedCharge.selectors_eq_of_unique
+#print axioms FixedCharge.service_le_capacity
+#print axioms FixedCharge.servedPrefix_horizon
+#print axioms FixedCharge.mem_feasibleSet_iff
+#print axioms FixedCharge.scheduleCost_eq_affine_on_positive_support
+#print axioms FixedCharge.Paper1.LotSizing.unique_optimum
+#print axioms FixedCharge.Paper1.Transportation.unique_optimum
+#print axioms FixedCharge.Paper1.APR.feasible_count
+#print axioms FixedCharge.Paper1.APR.unique_unrestricted_optimum
+#print axioms FixedCharge.Paper1.Sharpness.feasible_count
+#print axioms FixedCharge.Paper1.Sharpness.unique_optimum
+#print axioms FixedCharge.Paper1.Sharpness.nontrivial_segment_certificate
+#print axioms FixedCharge.Paper1.Modelling.guarded_lower_bound
+#print axioms FixedCharge.Paper1.Modelling.unguarded_lower_bound
+#print axioms FixedCharge.Paper1.Perturbations.apr_unique_optimum_breaks_without_setup_reward
+#print axioms FixedCharge.exists_extreme_isMinOn
+#print axioms FixedCharge.exists_extreme_discrete_optimizer
+#print axioms FixedCharge.fixedChargeCost_affine_on_support
+#print axioms FixedCharge.marginalLinear_correct
+#print axioms FixedCharge.fixedCharge_vertex_theorem
+#print axioms FixedCharge.embed_mem_own_supportCell
+#print axioms FixedCharge.integral_extreme_reconstruct
+#print axioms FixedCharge.support_cell_vertex_theorem
+#print axioms FixedCharge.exists_fixedCharge_optimum
+#print axioms FixedCharge.exists_optimal_extreme_support_cell
+#print axioms FixedCharge.exists_optimal_extreme_support_cell_for_fixed_charges
+#print axioms FixedCharge.isClosed_linearAmbient
+#print axioms FixedCharge.isCompact_supportCell_linearAmbient
+#print axioms FixedCharge.exists_optimal_extreme_support_cell_for_linear_system
+#print axioms FixedCharge.direction_eq_zero_of_extreme
+#print axioms FixedCharge.direction_eq_zero_of_extreme_smul
+#print axioms FixedCharge.eventually_mem_linearAmbient_along_direction
+#print axioms FixedCharge.exists_symmetric_perturbation_of_eventually
+#print axioms FixedCharge.eventually_mem_supportCell_along_direction
+#print axioms FixedCharge.supportCell_direction_eq_zero_of_extreme
+#print axioms FixedCharge.linearIndependent_activeColumns
+#print axioms FixedCharge.interior_card_le_activeMatrixRank
+#print axioms FixedCharge.exists_int_solution_of_isUnit_det
+#print axioms FixedCharge.int_solution_unique_of_isUnit_det
+#print axioms FixedCharge.isUnit_det_submatrix_of_tu_of_ne_zero
+#print axioms FixedCharge.exists_int_solution_of_tu_basis
+#print axioms FixedCharge.real_solution_is_integral_of_isUnit_det
+#print axioms FixedCharge.supportCell_coordinate_integral_outside_interior
+#print axioms FixedCharge.exists_nonsingular_row_minor
+#print axioms FixedCharge.integral_coordinates_of_tu
+#print axioms FixedCharge.supportCell_integral_of_tu
+#print axioms FixedCharge.exists_optimal_extreme_support_cell_of_tu

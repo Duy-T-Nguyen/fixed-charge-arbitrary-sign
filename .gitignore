@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
+formal/.lake/
 
 # LaTeX build products; the .tex sources are the record
 paper/*.aux
