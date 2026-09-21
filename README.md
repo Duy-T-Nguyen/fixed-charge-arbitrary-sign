@@ -44,10 +44,11 @@ Install [elan](https://lean-lang.org/lean4/doc/quickstart.html), then run:
 
 ```bash
 cd formal
-lake update
 lake exe cache get
 make check
 ```
+
+**Do not run `lake update`.** Six of the nine entries in `formal/lake-manifest.json` track a moving branch (`batteries`, `aesop`, `Qq`, `importGraph`, `plausible`, `LeanSearchClient` on `main`/`master`), so `lake update` re-resolves them to whatever those branches point at today and rewrites the manifest. `lake exe cache get` reads the manifest instead of replacing it.
 
 The project pins Lean and Mathlib to version `v4.29.0`. `make check` scans for proof holes,
 builds the full library, prints the axiom dependencies, builds the compatibility entry

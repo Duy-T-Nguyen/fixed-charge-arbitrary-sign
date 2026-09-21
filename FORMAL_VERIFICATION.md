@@ -5,8 +5,8 @@ This supplement separates three kinds of evidence.
 1. General claims are proved in `../paper/note.tex` and restated independently
    in `../FORMAL_PROOFS.md`.
 2. Primary-source mappings are documented in
-   `../literature/ZANGWILL_AUDIT.md` and
-   `../literature/APR_STATE_SPACE_AUDIT.md`.
+   `literature/ZANGWILL_AUDIT.md` and
+   `literature/APR_STATE_SPACE_AUDIT.md`, both included in this repository.
 3. Lean checks the support-conditioning identity, TU support-cell integrality,
    the resulting vertex theorem, and the full active-column cardinality/rank
    corollary.
