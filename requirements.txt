@@ -1,3 +1,4 @@
-# The verification scripts use only the standard library and NumPy.
-# Pinned to the version the reported figures were produced with.
-numpy==2.4.2
+# The verification scripts use standard library, NumPy, and SciPy (for L1_L2 LP test).
+# Pinned to the versions the reported figures were produced with.
+numpy>=2.0.0
+scipy>=1.13.0
